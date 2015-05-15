@@ -43,6 +43,19 @@ class oracle-xe (
     require     => [ User[$user_name], Group[$user_group] ]
   }
 
+  file { "/etc/profile.d/oracle.sh":
+    replace => "no", # this is the important property
+    ensure  => "present",
+    mode    => 655,
+    content => <<-EOF
+#!/bin/bash
+
+export ORACLE_SID=XE
+export ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe
+export PATH="${PATH}:${ORACLE_HOME}/bin"
+EOF
+}
+
   file { 'oracle-swap':
     path   => "$oracle_swap_script",
     ensure => file,
