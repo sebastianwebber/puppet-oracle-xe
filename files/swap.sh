@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -x
 
 if [ ! -e /proc/meminfo ]
 then
@@ -12,6 +12,7 @@ BUFFER=5000
 
 GLOBAL_MIN_SWAP=$[2097152+BUFFER]
 RAM_MIN_SWAP=$[TOTAL*2+BUFFER]
+MKSWAP_MIN=41
 
 SWAP_TO_CREATE="none"
 
@@ -28,13 +29,19 @@ then
   fi
 fi
 
+if [ $MKSWAP_MIN -gt $SWAP_TO_CREATE ]; then
+  SWAP_TO_CREATE=$MKSWAP_MIN
+fi
+
+
 if [ "$SWAP" == "none" ]
 then
   exit 0
 else
-  TMP=`mktemp`
+  TMP='/var/oracle-xe.swapfile'
 
   dd if=/dev/zero of=$TMP bs=1024 count=$SWAP_TO_CREATE
+  chmod 0600 $TMP
   mkswap $TMP
   swapon -a $TMP
 fi

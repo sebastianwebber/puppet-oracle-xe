@@ -5,7 +5,21 @@ class oracle-xe (
   $startup = 'y',
   $password,
   $iniface = undef,
+  $user_name = 'oracle',
+  $user_group = 'dba',
 ) {
+
+  group {
+    $user_group:
+      ensure => present,
+  }
+
+  user {
+    $user_name: 
+      ensure => present,
+      home => '/u01/app/oracle'
+  }
+
 
   $oracle_rpm = "oracle-xe-11.2.0-1.0.x86_64.rpm"
   $oracle_rpm_tmp = "/tmp/$oracle_rpm"
@@ -16,14 +30,17 @@ class oracle-xe (
     ensure => file,
     source => "puppet:///modules/oracle-xe/$oracle_rpm",
     mode   => 0444,
-    owner  => root,
-    group  => root,
+    owner  => $user_name,
+    group  => $user_group,
   }
 
   file { [ '/u01', '/u01/app', '/u01/app/oracle', '/u01/app/oracle/local']:
     ensure      => directory,
     before      => File['oracle-swap'],
-    refreshonly => true,
+    owner       => $user_name,
+    group       => $user_group,
+    mode        => '0770',
+    require     => [ User[$user_name], Group[$user_group] ]
   }
 
   file { 'oracle-swap':
